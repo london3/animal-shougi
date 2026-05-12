@@ -28,7 +28,7 @@
     <text x="90" y="90" class="piece">🐘</text>
     <text x="290" y="90" class="piece">🦁</text>
     <text x="490" y="90" class="piece">🦒</text>
-    <text x="290" y="290" class="piece">🐥</text>
+    <text x="190" y="290" class="piece">🐥</text>
   </g>
 
   <text x="100" y="520" class="label">Vercel公開中</text>
