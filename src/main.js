@@ -44,26 +44,59 @@ function initBoard() {
 let currentPlayer = PLAYERS.WHITE; // White starts (bottom player)
 let selectedSquare = null;
 let selectedCapturedPiece = null;
+let gameOver = false;
+let gameResult = null;
+let gameHistory = [];
+
+function getPlayerLabel(player) {
+  return player === PLAYERS.WHITE ? '白' : '黒';
+}
+
+function resetGame() {
+  board.forEach(row => row.fill(null));
+  initBoard();
+  currentPlayer = PLAYERS.WHITE;
+  selectedSquare = null;
+  selectedCapturedPiece = null;
+  gameOver = false;
+  gameResult = null;
+  capturedPieces = { [PLAYERS.BLACK]: [], [PLAYERS.WHITE]: [] };
+  renderBoard();
+}
+
+function endGame(winner, reason) {
+  gameOver = true;
+  gameResult = { winner, reason };
+  gameHistory.unshift({ winner, reason, time: new Date().toLocaleString() });
+  renderBoard();
+}
 
 // Render board
 function renderBoard() {
   const app = document.querySelector('#app');
+  const currentStatus = gameOver
+    ? `ゲーム終了：${getPlayerLabel(gameResult.winner)} の勝ち (${gameResult.reason})`
+    : `現在のプレイヤー：${getPlayerLabel(currentPlayer)}`;
+
+  const historyList = gameHistory.slice(0, 5).map(item => `          <li>${item.time} - ${getPlayerLabel(item.winner)} が ${item.reason}</li>`).join('');
+
   app.innerHTML = `
-    <h1>Animal Shogi</h1>
+    <h1>動物将棋</h1>
     <div id="game-container">
       <div id="board"></div>
       <div id="captured-pieces">
         <div id="black-captured">
-          <h3>Black Captured</h3>
+          <h3>敵の持ち駒</h3>
           <div id="black-captured-list"></div>
         </div>
         <div id="white-captured">
-          <h3>White Captured</h3>
+          <h3>自分の持ち駒</h3>
           <div id="white-captured-list"></div>
         </div>
       </div>
     </div>
-    <div id="status">Current player: ${currentPlayer}</div>
+    <div id="status">${currentStatus}</div>
+    ${gameOver ? '<div id="game-over"><button id="retry-button">リトライ</button></div>' : ''}
     <div id="rules">
       <h2>遊び方</h2>
       <ul>
@@ -74,7 +107,17 @@ function renderBoard() {
         <li>ライオンを取るか、相手の陣地最奥にライオンを進めると勝ちです。</li>
       </ul>
     </div>
+    <div id="history">
+      <h2>勝敗履歴</h2>
+      <p>直近 ${gameHistory.length} 件</p>
+      <ul>${historyList}</ul>
+    </div>
   `;
+
+  const retryButton = document.getElementById('retry-button');
+  if (retryButton) {
+    retryButton.addEventListener('click', resetGame);
+  }
 
   const boardElement = document.getElementById('board');
 
@@ -109,7 +152,7 @@ function renderBoard() {
 
       const isValidMoveSquare = validMoves.some(([moveRow, moveCol]) => moveRow === row && moveCol === col);
       const isValidDropSquare = validDrops.some(([dropRow, dropCol]) => dropRow === row && dropCol === col);
-      if (isValidMoveSquare || isValidDropSquare) {
+      if ((isValidMoveSquare || isValidDropSquare) && !gameOver) {
         square.classList.add('valid-move');
       }
 
@@ -170,6 +213,10 @@ function getPieceSymbol(piece) {
 
 // Handle square click
 function handleSquareClick(row, col) {
+  if (gameOver) {
+    return;
+  }
+
   const piece = board[row][col];
 
   if (selectedCapturedPiece !== null) {
@@ -184,9 +231,7 @@ function handleSquareClick(row, col) {
       if (pieceType === PIECES.LION) {
         if ((currentPlayer === PLAYERS.WHITE && row === 0) ||
             (currentPlayer === PLAYERS.BLACK && row === 3)) {
-          alert(`${currentPlayer} wins by try!`);
-          initBoard();
-          capturedPieces = { [PLAYERS.BLACK]: [], [PLAYERS.WHITE]: [] };
+          endGame(currentPlayer, '最奥陣地でのトライ勝ち');
           return;
         }
       }
@@ -212,9 +257,7 @@ function handleSquareClick(row, col) {
 
         // Check for win by catch (lion capture)
         if (capturedPiece.type === PIECES.LION) {
-          alert(`${currentPlayer} wins by catch!`);
-          initBoard();
-          capturedPieces = { [PLAYERS.BLACK]: [], [PLAYERS.WHITE]: [] };
+          endGame(currentPlayer, 'ライオンの捕獲勝ち');
           return;
         }
       }
@@ -234,9 +277,7 @@ function handleSquareClick(row, col) {
       if (selectedPiece.type === PIECES.LION) {
         if ((selectedPiece.player === PLAYERS.WHITE && row === 0) ||
             (selectedPiece.player === PLAYERS.BLACK && row === 3)) {
-          alert(`${currentPlayer} wins by try!`);
-          initBoard();
-          capturedPieces = { [PLAYERS.BLACK]: [], [PLAYERS.WHITE]: [] };
+          endGame(currentPlayer, '最奥陣地でのトライ勝ち');
           return;
         }
       }
