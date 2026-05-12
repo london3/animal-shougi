@@ -64,6 +64,16 @@ function renderBoard() {
       </div>
     </div>
     <div id="status">Current player: ${currentPlayer}</div>
+    <div id="rules">
+      <h2>遊び方</h2>
+      <ul>
+        <li>自分のターンで自分の駒を1つ移動します。</li>
+        <li>象は斜め1マス、キリンは縦横1マス、ライオンは8方向に1マス移動できます。</li>
+        <li>雛は前に1マス進み、昇格すると鶏になって6方向に進めます。</li>
+        <li>相手の駒を取ると持ち駒になり、自分のターンで盤上に打てます。</li>
+        <li>ライオンを取るか、相手の陣地最奥にライオンを進めると勝ちです。</li>
+      </ul>
+    </div>
   `;
 
   const boardElement = document.getElementById('board');
