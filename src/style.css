@@ -128,7 +128,7 @@ h1 {
 
 #black-captured {
   position: absolute;
-  top: 0;
+  top: -70px;
   left: 20px;
   display: flex;
   flex-direction: column;
